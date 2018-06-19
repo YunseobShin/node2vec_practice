@@ -12,17 +12,6 @@ def life_reverse():
 
 lifeｒreverse()
 
-
-
-
-
-
-
-
-
-
-
-
 def lifeｒreverse():
     numbers = list(range(1, 46))
     lotto = [10, 39, 13, 43, 5, 21]
