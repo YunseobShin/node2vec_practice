@@ -1,2 +1,7 @@
 *.csv
 *.txt
+*.json
+*.cpp
+*.bin
+*.npy
+ex_model
