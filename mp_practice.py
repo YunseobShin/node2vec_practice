@@ -70,25 +70,43 @@
 #########################################################
 # Pool
 
-from multiprocessing import Pool
-
-def doubler(number):
-    return number * 2
-
-if __name__ == '__main__':
-    numbers = [5, 10, 20]
-    pool = Pool(processes = 3)
-    print(pool.map(doubler, numbers))
+# from multiprocessing import Pool
+#
+# def doubler(n1, n2):
+#     return n1 * n2
+#
+# if __name__ == '__main__':
+#     numbers = [5, 10, 20]
+#     pool = Pool(processes = 3)
+#     print(pool.map(doubler, (numbers, 2),2 ))
 
 
 
 
 ####################################################
+# Pool with multiple arguments using partial
 
 
+import multiprocessing
+from functools import partial
+from contextlib import contextmanager
 
+@contextmanager
+def poolcontext(*args, **kwargs):
+    pool = multiprocessing.Pool(*args, **kwargs)
+    yield pool
+    pool.terminate()
 
+def merge_names(a, b):
+    return '{} & {}'.format(a, b)
 
+if __name__ == '__main__':
+    names = ['Brown', 'Wilson', 'Bartlett', 'Rivera', 'Molloy', 'Opie']
+    with poolcontext(processes=3) as pool:
+        results = pool.map(partial(merge_names, b='Sons'), names)
+    print(results)
+
+# Output: ['Brown & Sons', 'Wilson & Sons', 'Bartlett & Sons', ...
 
 
 
