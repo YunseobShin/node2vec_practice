@@ -8,15 +8,23 @@ from sklearn.metrics import silhouette_score
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import euclidean as dis
 import multiprocessing
-# from multiprocessing import Pool
-from functools import partial
+from multiprocessing import Pool
 from contextlib import contextmanager
+from functools import partial
 
 @contextmanager
 def poolcontext(*args, **kwargs):
-    pool = multiprocessing.Pool(*args, **kwargs)
+    pool = Pool(*args, **kwargs)
     yield pool
     pool.terminate()
+
+def get_avg_distance(vecs, length):
+    sample = np.random.chooice(vecs, 500, replace=False)
+    distances = []
+    for i in range(length):
+        for j in range(length):
+
+
 
 def get_treshold(vecs, dim, length):
     std_vec = []
@@ -25,37 +33,47 @@ def get_treshold(vecs, dim, length):
         # mean_vec.append(np.mean(vecs[:,i]))
         std_vec.append(np.std(vecs[:,i]))
 
-    return array(std_vec)/2
+    return np.mean(array(std_vec))
 
-def get_distances(x, V):
-    print(x)
-    res = []
-    for v in V:
-        print(dis(x, v))
-        res.append(dis(x, v))
-    return res
+def check_link(v, s, threshold):
+    res = (v-s)**2 < threshold**2
+    if res.all():
+        return True
+    else:
+        return False
 
-def vec_to_node(vecs, threshold, length, pool_size):
+def vec_to_node(vecs, threshold, length, pool_size=1):
     print('vec_to_node')
-    chunks = np.array_split(vecs, pool_size)
     # print(chunks)
     #vecs: length * dim, thresolds: dim * 1
-    with poolcontext(processes = pool_size) as pool:
-        for i in range(length):
-            res = pool.map(partial(get_distances, x=vecs[i]), chunks)
+    # chunks = np.array_split(vecs, pool_size)
 
-    links = array([])
+    links = []
+    print('converting vectors back into a graph...')
+    g = open('new_graph', 'a')
+    for i in range(length):
+        for j in range(length):
+            if np.array_equal(vecs[i], vecs[j]):
+                continue
+            is_linked = check_link(vecs[i], vecs[j], threshold)
+            if is_linked:
+                g.write(str(i+1)+' '+ str(j+1)+'\n')
+                # links.append((i+1, j+1))
+        if i % 10 == 0 :
+            print(str(i)+'/'+str(length))
+            toc()
+            tic()
 
-
-    # for i in range(length):
-    #     v = vecs[i,:]
-    #     neighbors = where(dis(, threshold))
-
+    g.close()
+    # print('saving a new graph...')
+    # with open('new_graph.txt', 'w') as g:
+    #     g.write(links)
 
 
 if __name__ == '__main__':
-    pool_size = int(input('Enter the pool size: '))
+    # pool_size = int(input('Enter the pool size: '))
     tic()
+    g = open('new_graph', 'w')
     with open('embeddings.json', 'r') as em:
         vec = json.load(em)
         size = len(vec)
@@ -64,7 +82,7 @@ if __name__ == '__main__':
         # vec_to_node(vecs, 4)
     length = vecs.shape[0]
     thresholds = get_treshold(vecs, dim, length)
-    vec_to_node(vecs, dim, length, pool_size)
+    vec_to_node(vecs, thresholds, length)
 
 
     toc()

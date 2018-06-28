@@ -78,7 +78,7 @@
 # if __name__ == '__main__':
 #     numbers = [5, 10, 20]
 #     pool = Pool(processes = 3)
-#     print(pool.map(doubler, (numbers, 2),2 ))
+#     print(pool.map(doubler, numbers))
 
 
 
@@ -86,32 +86,54 @@
 ####################################################
 # Pool with multiple arguments using partial
 
-
-import multiprocessing
-from functools import partial
-from contextlib import contextmanager
-
-@contextmanager
-def poolcontext(*args, **kwargs):
-    pool = multiprocessing.Pool(*args, **kwargs)
-    yield pool
-    pool.terminate()
-
-def merge_names(a, b):
-    return '{} & {}'.format(a, b)
-
-if __name__ == '__main__':
-    names = ['Brown', 'Wilson', 'Bartlett', 'Rivera', 'Molloy', 'Opie']
-    with poolcontext(processes=3) as pool:
-        results = pool.map(partial(merge_names, b='Sons'), names)
-    print(results)
+# import multiprocessing
+# from functools import partial
+# from contextlib import contextmanager
+#
+# @contextmanager
+# def poolcontext(*args, **kwargs):
+#     pool = multiprocessing.Pool(*args, **kwargs)
+#     yield pool
+#     pool.terminate()
+#
+# def merge_names(a, b):
+#     return '{} & {}'.format(a, b)
+#
+# if __name__ == '__main__':
+#     names = ['Brown', 'Wilson', 'Bartlett', 'Rivera', 'Molloy', 'Opie']
+#     with poolcontext(processes=3) as pool:
+#         results = pool.map(partial(merge_names, b='Sons'), names)
+#     print(results)
 
 # Output: ['Brown & Sons', 'Wilson & Sons', 'Bartlett & Sons', ...
 
 
+##################################################################################
+#starmap
 
+#!/usr/bin/env python3
+from functools import partial
+from itertools import repeat
+from multiprocessing import Pool, freeze_support
 
+def func(a, b):
+    print('a:', a)
+    print('b:', b)
+    print('a+b: ', a+b)
+    return a + b
 
+def main():
+    a_args = [1,2,3]
+    second_arg = 1
+    with Pool() as pool:
+        L = pool.starmap(func, [(1, 1), (2, 1), (3, 1)])
+        M = pool.starmap(func, zip(a_args, repeat(second_arg)))
+        N = pool.map(partial(func, b=second_arg), a_args)
+        assert L == M == N
+
+if __name__=="__main__":
+    freeze_support()
+    main()
 
 
 
