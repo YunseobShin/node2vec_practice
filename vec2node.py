@@ -18,22 +18,16 @@ def poolcontext(*args, **kwargs):
     yield pool
     pool.terminate()
 
-def get_avg_distance(vecs, length):
-    sample = np.random.chooice(vecs, 500, replace=False)
+def get_treshold(vecs, mu):
+    sample = vecs[np.random.choice(vecs.shape[0], 500, replace=False), :]
     distances = []
-    for i in range(length):
-        for j in range(length):
-
-
-
-def get_treshold(vecs, dim, length):
-    std_vec = []
-    for i in range(dim):
-        # print(vecs[:,i])
-        # mean_vec.append(np.mean(vecs[:,i]))
-        std_vec.append(np.std(vecs[:,i]))
-
-    return np.mean(array(std_vec))
+    len = sample.shape[1]
+    for i in range(len):
+        for j in range(len):
+            distances.append(dis(sample[i], sample[j]))
+    res = np.mean(array(distances))/mu
+    print('The average distance of sample: ', res)
+    return res
 
 def check_link(v, s, threshold):
     res = (v-s)**2 < threshold**2
@@ -41,6 +35,9 @@ def check_link(v, s, threshold):
         return True
     else:
         return False
+
+def parallel_check_link(vecs, start, end):
+    pass
 
 def vec_to_node(vecs, threshold, length, pool_size=1):
     print('vec_to_node')
@@ -81,7 +78,8 @@ if __name__ == '__main__':
         vecs = array(list(vec.values()))
         # vec_to_node(vecs, 4)
     length = vecs.shape[0]
-    thresholds = get_treshold(vecs, dim, length)
+    mu = float(input('Enter the threshold hyperparameter mu: '))
+    thresholds = get_treshold(vecs, mu)
     vec_to_node(vecs, thresholds, length)
 
 
