@@ -86,24 +86,56 @@
 ####################################################
 # Pool with multiple arguments using partial
 
-# import multiprocessing
-# from functools import partial
-# from contextlib import contextmanager
-#
-# @contextmanager
-# def poolcontext(*args, **kwargs):
-#     pool = multiprocessing.Pool(*args, **kwargs)
-#     yield pool
-#     pool.terminate()
-#
-# def merge_names(a, b):
-#     return '{} & {}'.format(a, b)
-#
-# if __name__ == '__main__':
-#     names = ['Brown', 'Wilson', 'Bartlett', 'Rivera', 'Molloy', 'Opie']
-#     with poolcontext(processes=3) as pool:
-#         results = pool.map(partial(merge_names, b='Sons'), names)
-#     print(results)
+import multiprocessing
+from functools import partial
+from contextlib import contextmanager
+import numpy as np
+from numpy import array as ar
+from scipy.spatial.distance import euclidean as dis
+
+@contextmanager
+def poolcontext(*args, **kwargs):
+    pool = multiprocessing.Pool(*args, **kwargs)
+    yield pool
+    pool.terminate()
+
+
+def check_link(v, s, threshold):
+    print('v shape: ', v.shape)
+    print('s shape: ', s.shape)
+    res = dis(v, s) < threshold
+    if res.all():
+        return True
+    else:
+        return False
+
+def parallel_check_link(a, b, c, d):
+    print(a)
+    print(b)
+    g = open('new_graph', 'a')
+    for i in range(b.shape[0]):
+        if np.array_equal(a, b[i]):
+            continue
+        if check_link(a, b[i], c):
+            g.write(str(d+1)+' '+ str(i+1)+'\n')
+    g.close()
+
+    # return '{} & {} & {}'.format(a, b, c)
+
+
+
+if __name__ == '__main__':
+    names = ['Brown', 'Wilson', 'Bartlett', 'Rivera', 'Molloy', 'Opie']
+    nums = ar([ ar([1,2,3,4,5,6]), ar([2,3,4,5,6,7]),
+                ar([3,2,5,4,5,80]), ar([4,5,5,1,5,92]) ])
+    chunks = [nums[0:2], nums[2:4]]
+
+    for i in range(nums.shape[0]):
+        v = nums[i]
+        print(v.shape)
+        with poolcontext(processes=10) as pool:
+            pool.map(partial(parallel_check_link, b=v, c=2, d=i), chunks)
+        # print(results)
 
 # Output: ['Brown & Sons', 'Wilson & Sons', 'Bartlett & Sons', ...
 
@@ -112,28 +144,28 @@
 #starmap
 
 #!/usr/bin/env python3
-from functools import partial
-from itertools import repeat
-from multiprocessing import Pool, freeze_support
-
-def func(a, b):
-    print('a:', a)
-    print('b:', b)
-    print('a+b: ', a+b)
-    return a + b
-
-def main():
-    a_args = [1,2,3]
-    second_arg = 1
-    with Pool() as pool:
-        L = pool.starmap(func, [(1, 1), (2, 1), (3, 1)])
-        M = pool.starmap(func, zip(a_args, repeat(second_arg)))
-        N = pool.map(partial(func, b=second_arg), a_args)
-        assert L == M == N
-
-if __name__=="__main__":
-    freeze_support()
-    main()
+# from functools import partial
+# from itertools import repeat
+# from multiprocessing import Pool, freeze_support
+#
+# def func(a, b):
+#     print('a:', a)
+#     print('b:', b)
+#     print('a+b: ', a+b)
+#     return a + b
+#
+# def main():
+#     a_args = [1,2,3]
+#     second_arg = 1
+#     with Pool() as pool:
+#         L = pool.starmap(func, [(1, 1), (2, 1), (3, 1)])
+#         M = pool.starmap(func, zip(a_args, repeat(second_arg)))
+#         N = pool.map(partial(func, b=second_arg), a_args)
+#         assert L == M == N
+#
+# if __name__=="__main__":
+#     freeze_support()
+#     main()
 
 
 
